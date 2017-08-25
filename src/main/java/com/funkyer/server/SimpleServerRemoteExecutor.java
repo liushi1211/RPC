@@ -1,5 +1,7 @@
 package com.funkyer.server;
 
+import com.funkyer.RemoteCall;
+import com.funkyer.RemoteExecutor;
 import com.funkyer.RpcServiceBean;
 import com.funkyer.exception.RpcException;
 import com.funkyer.utils.RpcUtils;
@@ -9,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by liushi on 17/8/25.
  */
-public class SimpleServerRemoteExecutor
+public class SimpleServerRemoteExecutor implements RemoteExecutor
 {
     protected ConcurrentHashMap<String,RpcServiceBean> exeCache = new ConcurrentHashMap<String,RpcServiceBean>();
     /**
@@ -17,7 +19,7 @@ public class SimpleServerRemoteExecutor
      */
     private String application;
 
-    private void registerRemoteService(String serviceName,Object ifaceImpl,String version,String group)
+    public void registerRemoteService(String serviceName,Object ifaceImpl,String version,String group)
     {
         Object service = exeCache.get(serviceName);
         if(service!=null&&service!=ifaceImpl){
@@ -36,16 +38,48 @@ public class SimpleServerRemoteExecutor
         }
 
 
-        exeCache.put(this.genExeKey(serviceName, version,group), new RpcServiceBean(serviceName,ifaceImpl,version,application,group));
+        exeCache.put(RpcUtils.genExeKey(serviceName, version,group), new RpcServiceBean(serviceName,ifaceImpl,version,getApplication(),group));
 
     }
 
-    private String genExeKey(String serviceName,String version,String group)
+
+
+    public String getApplication()
     {
-        if(version!=null)
-        {
-            return group+"_"+serviceName+"_"+version;
+        return application;
+    }
+
+    public void setApplication(String application)
+    {
+        this.application = application;
+    }
+
+    @Override
+    public void oneway(RemoteCall call)
+    {
+        TaskExecutor.executeTask(findService(call),call.getMethod(),call.getArgs());
+
+    }
+
+    @Override
+    public Object invoke(RemoteCall call)
+    {
+        return TaskExecutor.executeTask(findService(call),call.getMethod(),call.getArgs());
+    }
+
+
+
+    /**
+     * 通过service和版本找到实现对象
+     * @param call
+     * @return
+     */
+    private Object findService(RemoteCall call){
+        String exeKey = RpcUtils.genExeKey(call.getService(), call.getVersion(),call.getGroup());
+        RpcServiceBean object = exeCache.get(exeKey);
+        if(object==null||object.getBean()==null){
+            throw new RpcException("group:"+call.getGroup()+" service:"+call.getService()+" version:"+call.getVersion()+" not exist");
         }
-        return serviceName;
+        return object.getBean();
     }
 }

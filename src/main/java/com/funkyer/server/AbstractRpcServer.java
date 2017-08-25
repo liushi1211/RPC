@@ -39,6 +39,6 @@ public abstract class AbstractRpcServer extends AbstractRpcNetworkBase
      */
     public void register(String serviceName,Object ifaceImpl,String version,String group)
     {
-
+        proxy.registerRemoteService(serviceName,ifaceImpl,version,group);
     }
 }
