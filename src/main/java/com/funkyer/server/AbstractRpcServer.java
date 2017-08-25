@@ -6,11 +6,16 @@ package com.funkyer.server;
 public abstract class AbstractRpcServer extends AbstractRpcNetworkBase
 {
     /**
+     * 业务remote api注册与执行代理
+     */
+    private SimpleServerRemoteExecutor proxy = new SimpleServerRemoteExecutor();
+    /**
      * 注册为rpc服务
      * @param serviceName
      * @param ifaceImpl
      */
-    public void register(String serviceName,Object ifaceImpl){
+    public void register(String serviceName,Object ifaceImpl)
+    {
         this.register(serviceName,ifaceImpl,null);
     }
 
@@ -20,7 +25,8 @@ public abstract class AbstractRpcServer extends AbstractRpcNetworkBase
      * @param ifaceImpl
      * @param version
      */
-    public void register(String serviceName,Object ifaceImpl,String version){
+    public void register(String serviceName,Object ifaceImpl,String version)
+    {
         this.register(serviceName, ifaceImpl, version,null);
     }
 
@@ -31,7 +37,8 @@ public abstract class AbstractRpcServer extends AbstractRpcNetworkBase
      * @param version
      * @param group
      */
-    public void register(String serviceName,Object ifaceImpl,String version,String group){
+    public void register(String serviceName,Object ifaceImpl,String version,String group)
+    {
 
     }
 }
